@@ -13,7 +13,7 @@
         ├── SKILL.md
         ├── scripts/review.sh
         └── references/
-            ├── codex_cli.md
+            ├── codex-cli.md
             └── review_prompts.md
 ```
 

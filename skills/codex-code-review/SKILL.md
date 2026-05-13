@@ -47,13 +47,18 @@ Code review request → What scope?
 
 ## Headless Execution (Required)
 
-When running codex for automated code reviews, you MUST use the `--full-auto` flag to grant all necessary permissions for headless operation. Without this flag, codex may hang waiting for user approval.
+When running codex for automated code reviews, you MUST use sandbox/approval flags to grant necessary permissions for headless operation. Without these flags, codex may hang waiting for user approval.
 
-**Always use `--full-auto` for non-interactive reviews:**
+> **Note:** `--full-auto` is deprecated in Codex CLI v0.130+. Use `--sandbox workspace-write` instead. Examples below use `--full-auto` for backwards compatibility, but prefer the new flag.
+
+**Always use automation flags for non-interactive reviews:**
 
 ```bash
-# CORRECT: Full automation mode - grants all permissions automatically
-codex --full-auto exec "Review the staged git changes..."
+# RECOMMENDED: Modern sandbox-based automation
+codex exec --sandbox workspace-write "Review the staged git changes..."
+
+# LEGACY (deprecated but still works): Full automation mode
+codex exec --full-auto "Review the staged git changes..."
 
 # WRONG: May hang waiting for approval in automated contexts
 codex exec "Review the staged git changes..."
@@ -63,13 +68,16 @@ codex exec "Review the staged git changes..."
 
 - Codex requires approval for file reads, command execution, and other operations
 - In headless/automated mode, there's no user to approve these actions
-- `--full-auto` auto-approves all safe operations, enabling true automation
+- `--sandbox workspace-write` allows file reads and writes within the workspace automatically
 
-**Alternative: Granular approval flags:**
+**Alternative: Granular sandbox levels:**
 
 ```bash
-# Auto-approve specific operation types
-codex --auto-approve-read --auto-approve-execute exec "..."
+# Read-only sandbox (safest, no file edits)
+codex exec --sandbox read-only "..."
+
+# Workspace write (allows file edits in current workspace)
+codex exec --sandbox workspace-write "..."
 ```
 
 ## Quick Start
@@ -77,7 +85,7 @@ codex --auto-approve-read --auto-approve-execute exec "..."
 To perform a basic code review on staged changes:
 
 ```bash
-codex --full-auto exec "Review the staged git changes. Analyze code quality, identify bugs, suggest improvements, and check for security issues. Provide a structured review with severity levels."
+codex exec --full-auto "Review the staged git changes. Analyze code quality, identify bugs, suggest improvements, and check for security issues. Provide a structured review with severity levels."
 ```
 
 ## Review Workflows
@@ -89,7 +97,7 @@ To review uncommitted changes in the current repository:
 **Staged changes only:**
 
 ```bash
-codex --full-auto exec "Review all staged changes (git diff --cached). For each file:
+codex exec --full-auto "Review all staged changes (git diff --cached). For each file:
 1. Summarize what changed
 2. Identify potential bugs or logic errors
 3. Check for security vulnerabilities
@@ -102,7 +110,7 @@ Format as a structured review report."
 **All uncommitted changes:**
 
 ```bash
-codex --full-auto exec "Review all uncommitted changes (git diff HEAD). Provide:
+codex exec --full-auto "Review all uncommitted changes (git diff HEAD). Provide:
 - Summary of changes per file
 - Bug identification with line numbers
 - Security concerns
@@ -113,7 +121,7 @@ codex --full-auto exec "Review all uncommitted changes (git diff HEAD). Provide:
 **Changes between branches:**
 
 ```bash
-codex --full-auto exec "Review changes between main and current branch (git diff main...HEAD). Focus on:
+codex exec --full-auto "Review changes between main and current branch (git diff main...HEAD). Focus on:
 1. Breaking changes
 2. API compatibility
 3. Test coverage gaps
@@ -129,7 +137,7 @@ To review a GitHub Pull Request:
 gh pr diff <PR_NUMBER> > /tmp/pr_diff.txt
 
 # Then review with codex (--full-auto for headless operation)
-codex --full-auto exec "Review the code changes in /tmp/pr_diff.txt as a thorough PR reviewer. Provide:
+codex exec --full-auto "Review the code changes in /tmp/pr_diff.txt as a thorough PR reviewer. Provide:
 
 ## Summary
 Brief description of what this PR accomplishes
@@ -157,7 +165,7 @@ To review specific files:
 **Single file:**
 
 ```bash
-codex --full-auto exec "Perform a comprehensive code review of src/utils/auth.ts. Analyze:
+codex exec --full-auto "Perform a comprehensive code review of src/utils/auth.ts. Analyze:
 1. Code correctness and logic
 2. Error handling completeness
 3. Security vulnerabilities (OWASP Top 10)
@@ -169,7 +177,7 @@ codex --full-auto exec "Perform a comprehensive code review of src/utils/auth.ts
 **Multiple files:**
 
 ```bash
-codex --full-auto exec "Review these files as a cohesive unit: src/api/handler.ts, src/api/middleware.ts, src/api/routes.ts. Focus on:
+codex exec --full-auto "Review these files as a cohesive unit: src/api/handler.ts, src/api/middleware.ts, src/api/routes.ts. Focus on:
 - Consistency across files
 - Proper separation of concerns
 - Error propagation
@@ -181,7 +189,7 @@ codex --full-auto exec "Review these files as a cohesive unit: src/api/handler.t
 To review an entire directory or project:
 
 ```bash
-codex --full-auto exec "Perform a code review of the src/services/ directory. For each file:
+codex exec --full-auto "Perform a code review of the src/services/ directory. For each file:
 - Identify the file's purpose
 - List any bugs or issues
 - Note security concerns
@@ -195,7 +203,7 @@ Provide a summary with prioritized action items."
 To perform a security-focused review:
 
 ```bash
-codex --full-auto exec "Perform a security audit of the codebase. Check for:
+codex exec --full-auto "Perform a security audit of the codebase. Check for:
 
 **Critical:**
 - SQL injection vulnerabilities
@@ -230,7 +238,7 @@ Report findings with:
 To analyze code for performance issues:
 
 ```bash
-codex --full-auto exec "Analyze the codebase for performance issues:
+codex exec --full-auto "Analyze the codebase for performance issues:
 
 1. **Algorithm Complexity**
    - O(n^2) or worse operations
@@ -260,7 +268,7 @@ Provide specific file locations and optimization suggestions."
 To review code architecture and design:
 
 ```bash
-codex --full-auto exec "Review the codebase architecture:
+codex exec --full-auto "Review the codebase architecture:
 
 1. **Design Patterns**
    - Identify patterns in use
@@ -292,7 +300,7 @@ Provide architectural recommendations with examples."
 To use a specific model (if need to use the latest model - make sure do web search first to find the latest and most suitable model) for deeper analysis:
 
 ```bash
-codex --full-auto exec --model gpt-5.1-codex "Perform thorough code review of src/..."
+codex exec --full-auto --model gpt-5.1-codex "Perform thorough code review of src/..."
 ```
 
 ### Reasoning Depth
@@ -310,7 +318,7 @@ model_reasoning_effort = "high"
 To save review results:
 
 ```bash
-codex --full-auto exec -o review_report.md "Review src/api/..."
+codex exec --full-auto -o review_report.md "Review src/api/..."
 ```
 
 ### JSON Output
@@ -318,7 +326,7 @@ codex --full-auto exec -o review_report.md "Review src/api/..."
 To get structured JSON output for CI integration:
 
 ```bash
-codex --full-auto exec --json "Review staged changes. Return JSON with structure:
+codex exec --full-auto --json "Review staged changes. Return JSON with structure:
 {
   \"summary\": \"...\",
   \"files_reviewed\": [...],
@@ -344,7 +352,7 @@ if [ -z "$CHANGED_FILES" ]; then
 fi
 
 # Run codex review (--full-auto required for CI/headless operation)
-codex --full-auto exec --skip-git-repo-check -o review.md "Review these changed files: $CHANGED_FILES
+codex exec --full-auto --skip-git-repo-check -o review.md "Review these changed files: $CHANGED_FILES
 
 Provide a structured review. If any critical or high severity issues are found, clearly indicate BLOCKING_ISSUES=true at the end."
 
@@ -453,7 +461,7 @@ When your review includes version-related findings, format them as:
 
 ## Reference Files
 
-- **[Codex CLI Reference](./references/codex_cli.md)** - Complete command reference and configuration options
+- **[Codex CLI Reference](./references/codex-cli.md)** - Complete command reference and configuration options
 - **[Review Prompts Library](./references/review_prompts.md)** - Collection of specialized review prompts
 
 ## Troubleshooting

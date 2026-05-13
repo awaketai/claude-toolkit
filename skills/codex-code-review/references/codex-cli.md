@@ -68,7 +68,7 @@ codex exec resume --last       # Resume last in exec mode
 
 | Flag | Description |
 |------|-------------|
-| `--full-auto` | Allow file edits without confirmation |
+| `--full-auto` | (Deprecated) Allow file edits without confirmation. Use `--sandbox workspace-write` instead |
 | `--sandbox danger-full-access` | Allow edits and network commands |
 | `--skip-git-repo-check` | Disable Git repository requirement |
 | `-o, --output-last-message` | Specify output file |
@@ -223,6 +223,6 @@ codex exec --skip-git-repo-check "prompt"
 
 **Timeout on long operations:**
 ```bash
-# Use full-auto for extended tasks
-codex exec --full-auto "prompt"
+# Use sandbox workspace-write for extended tasks
+codex exec --sandbox workspace-write "prompt"
 ```

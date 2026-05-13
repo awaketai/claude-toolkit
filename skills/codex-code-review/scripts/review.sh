@@ -63,6 +63,13 @@ check_codex() {
     fi
 }
 
+require_arg() {
+    if [[ -z "${2-}" ]]; then
+        log_error "Option $1 requires a value"
+        exit 1
+    fi
+}
+
 # Parse arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -75,21 +82,25 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         --branch)
+            require_arg "$1" "${2-}"
             REVIEW_TYPE="branch"
             BRANCH="$2"
             shift 2
             ;;
         --files)
+            require_arg "$1" "${2-}"
             REVIEW_TYPE="files"
             FILES="$2"
             shift 2
             ;;
         --dir)
+            require_arg "$1" "${2-}"
             REVIEW_TYPE="dir"
             DIR="$2"
             shift 2
             ;;
         --pr)
+            require_arg "$1" "${2-}"
             REVIEW_TYPE="pr"
             PR_NUMBER="$2"
             shift 2
@@ -103,10 +114,12 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         --output)
+            require_arg "$1" "${2-}"
             OUTPUT_FILE="$2"
             shift 2
             ;;
         --model)
+            require_arg "$1" "${2-}"
             MODEL="$2"
             shift 2
             ;;
@@ -190,7 +203,7 @@ $focus_prompt"
 $focus_prompt"
             ;;
         pr)
-            base_prompt="Review the code changes in /tmp/pr_${PR_NUMBER}_diff.txt as a thorough PR reviewer.
+            base_prompt="Review the code changes in $PR_DIFF_FILE as a thorough PR reviewer.
 
 ## Summary
 Brief description of what this PR accomplishes
@@ -228,14 +241,20 @@ main() {
             log_error "GitHub CLI (gh) is required for PR reviews"
             exit 1
         fi
+        if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            log_error "PR number must be a positive integer, got: $PR_NUMBER"
+            exit 1
+        fi
+        PR_DIFF_FILE=$(mktemp "${TMPDIR:-/tmp}/codex-pr-XXXXXX.txt")
+        trap 'rm -f "$PR_DIFF_FILE"' EXIT
         log_info "Fetching PR #$PR_NUMBER diff..."
-        gh pr diff "$PR_NUMBER" > "/tmp/pr_${PR_NUMBER}_diff.txt"
+        gh pr diff "$PR_NUMBER" > "$PR_DIFF_FILE"
     fi
 
-    # Build command
-    local cmd="codex exec"
-    [[ -n "$MODEL" ]] && cmd="$cmd --model $MODEL"
-    [[ -n "$OUTPUT_FILE" ]] && cmd="$cmd -o $OUTPUT_FILE"
+    # Build command as an array to avoid eval/shell injection
+    local -a cmd=(codex exec --sandbox workspace-write)
+    [[ -n "$MODEL" ]] && cmd+=(--model "$MODEL")
+    [[ -n "$OUTPUT_FILE" ]] && cmd+=(-o "$OUTPUT_FILE")
 
     local prompt
     prompt=$(build_prompt)
@@ -243,8 +262,8 @@ main() {
     log_info "Running review..."
     echo ""
 
-    # Execute codex
-    eval "$cmd" "\"$prompt\""
+    # Execute codex safely via array expansion
+    "${cmd[@]}" "$prompt"
 
     echo ""
     log_success "Review complete!"
