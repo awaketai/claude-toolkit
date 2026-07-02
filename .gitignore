@@ -1,5 +1,6 @@
 # 本地软链接：指向家目录 ~/.agents/skills/，属机器本地配置，不纳入版本管理
 skills/lark-*
+skills/nuwa-skill/
 
 # 工具本地配置（Claude Code / GLM 等运行时生成，机器相关）
 .claude/
