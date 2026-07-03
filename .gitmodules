@@ -1,0 +1,15 @@
+[submodule "skills/munger-skill"]
+	path = skills/munger-skill
+	url = git@github.com:alchaincyf/munger-skill.git
+[submodule "skills/nuwa-skill"]
+	path = skills/nuwa-skill
+	url = git@github.com:alchaincyf/nuwa-skill.git
+[submodule "skills/paul-graham-skill"]
+	path = skills/paul-graham-skill
+	url = git@github.com:alchaincyf/paul-graham-skill.git
+[submodule "skills/steve-jobs-skill"]
+	path = skills/steve-jobs-skill
+	url = git@github.com:alchaincyf/steve-jobs-skill.git
+[submodule "skills/trump-skill"]
+	path = skills/trump-skill
+	url = git@github.com:alchaincyf/trump-skill.git

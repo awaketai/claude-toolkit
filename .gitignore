@@ -1,6 +1,13 @@
-# 忽略所有 skills，仅保留 codex-code-review 纳入版本管理
+# 忽略所有 skills，逐个放行纳入版本管理的
 skills/*
 !skills/codex-code-review/
+!skills/munger-skill/
+!skills/nuwa-skill/
+!skills/paul-graham-skill/
+!skills/steve-jobs-skill/
+!skills/trump-skill/
+
+# lark-* 等脚本生成的软链保持忽略（已被 skills/* 覆盖）
 
 # 工具本地配置（Claude Code / GLM 等运行时生成，机器相关）
 .claude/
